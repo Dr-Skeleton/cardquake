@@ -1,6 +1,6 @@
 # cardquake
 
-Quake 1 mod
+Quake 1 mod built on darkplaces
 To run:
 * Compile code in this repo using ftwqcc targeting prog.src
 * copy repo dir into Darkplaces dir
