@@ -1,9 +1,11 @@
 ../progs.dat
 
 defs.qc
+dpextensions.qc
 subs.qc
 fight.qc
 ai.qc
+exp.qc
 combat.qc
 items.qc
 weapons.qc
