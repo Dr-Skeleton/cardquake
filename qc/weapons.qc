@@ -47,6 +47,45 @@ float() crandom =
 W_FireAxe
 ================
 */
+
+void() monster_shambler_baby;
+
+void() removeshamb =
+{
+	T_Damage(self,self,self, 999);
+}
+
+void() spawn_buddy =
+{
+
+
+	newmis = spawn();
+
+	makevectors(self.v_angle);
+	newmis.velocity = aim(self, 1000);
+	newmis.velocity = newmis.velocity * 1000;
+	newmis.angles = vectoangles(newmis.velocity);
+
+	newmis.angles_y = newmis.angles_y + 180;
+
+	newmis.movetype = MOVETYPE_TOSS;
+	newmis.solid = SOLID_TRIGGER;
+	setsize (newmis, '-20 -20 -20', '16 16 16');
+	newmis.owner = self;
+	setmodel(newmis, "progs/bloodshot/shambler_mini.mdl");
+	newmis.origin = self.origin + v_up*15 + v_forward*25;
+
+	newmis.enemy = self.enemy;
+
+	//newmis.think = removeshamb;
+	//newmis.nextthink = time + .1;
+
+	newmis.classname = "monster_shambler_baby";
+	newmis.touch = monster_shambler_baby;
+
+
+}
+
 void() W_FireAxe =
 {
 	local	vector	source;
@@ -55,8 +94,29 @@ void() W_FireAxe =
 	makevectors (self.v_angle);
 	source = self.origin + '0 0 16';
 	traceline (source, source + v_forward*64, FALSE, self);
+
+	spawn_buddy();
+		sound (self, CHAN_VOICE, "bloodshot/shambler/ssight.wav", 1, ATTN_NORM);
+
+	/*local entity tgt;
+
+	tgt = findradius(self.origin, 1500);
+
+	while(tgt)
+	{
+		if (tgt.health && (tgt.flags & FL_MONSTER))
+		{
+			self.enemy = tgt;
+		}
+		tgt = tgt.chain;
+	}*/
+
+
 	if (trace_fraction == 1.0)
 		return;
+
+
+
 
 	org = trace_endpos - v_forward*4;
 
@@ -76,6 +136,8 @@ void() W_FireAxe =
 		WriteCoord (MSG_BROADCAST, org_z);
 	}
 };
+
+
 
 
 //============================================================================
@@ -101,8 +163,7 @@ SpawnMeatSpray
 */
 void(vector org, vector vel) SpawnMeatSpray =
 {
-	local	entity missile, mpuff;
-	local	vector	org;
+	local	entity missile;
 
 	missile = spawn ();
 	missile.owner = self;
@@ -256,6 +317,7 @@ void(float shotcount, vector dir, vector spread) FireBullets =
 	src = self.origin + v_forward*10;
 	src_z = self.absmin_z + self.size_z * 0.7;
 
+
 	ClearMultiDamage ();
 	while (shotcount > 0)
 	{
@@ -264,6 +326,8 @@ void(float shotcount, vector dir, vector spread) FireBullets =
 		traceline (src, src + direction*2048, FALSE, self);
 		if (trace_fraction != 1.0)
 			TraceAttack (4, direction);
+
+		shepherd();
 
 		shotcount = shotcount - 1;
 	}
@@ -279,57 +343,13 @@ void() W_FireShotgun =
 {
 	local vector dir;
 
-	sound (self, CHAN_WEAPON, "weapons/guncock.wav", 1, ATTN_NORM);
+	sound (self, CHAN_WEAPON, "bloodshot/sheep/gbfire.wav", 1, ATTN_NORM);
 
 	self.punchangle_x = -2;
 
-	self.currentammo = self.ammo_shells = self.ammo_shells + 1;
+	self.currentammo = self.ammo_shells = self.ammo_shells - 1;
 	dir = aim (self, 100000);
 	FireBullets (6, dir, '0.04 0.04 0');
-	/*
-	#ent_create weapon_supershotgun
-	*/
-
-   /* local entity mon;
-	 mon = spawn ();
-	 mon.classname = "monster_dog"; */
-
-
-	/* local	entity missile, mpuff;
-
-	missile = spawn ();
-	missile.owner = self;
-	missile.movetype = MOVETYPE_BOUNCE;
-	missile.solid = SOLID_BBOX;
-	missile.classname = "monster_dog";
-
-	// set missile speed
-
-		makevectors (self.v_angle);
-
-		if (self.v_angle_x)
-			missile.velocity = v_forward*600 + v_up * 200 + crandom()*v_right*10 + crandom()*v_up*10;
-		else
-		{
-			missile.velocity = aim(self, 10000);
-			missile.velocity = missile.velocity * 600;
-			missile.velocity_z = 200;
-		}
-
-		missile.avelocity = '300 300 300';
-
-		missile.angles = vectoangles(missile.velocity);
-
-		//missile.touch = GrenadeTouch;
-
-	// set missile duration
-		missile.nextthink = time + 2.5;
-		//missile.think = GrenadeExplode;
-
-		//setmodel (missile, "progs/grenade.mdl");
-		setsize (missile, '0 0 0', '0 0 0');
-		setorigin (missile, self.origin); */
-
 };
 
 
@@ -430,7 +450,7 @@ W_FireRocket
 */
 void() W_FireRocket =
 {
-	local	entity missile, mpuff;
+	local	entity missile;
 
 	self.currentammo = self.ammo_rockets = self.ammo_rockets - 1;
 
@@ -451,15 +471,17 @@ void() W_FireRocket =
 	missile.velocity = missile.velocity * 1000;
 	missile.angles = vectoangles(missile.velocity);
 
+	//missile.touch = spawn_spawner;
 	missile.touch = T_MissileTouch;
 
 // set missile duration
 	missile.nextthink = time + 5;
 	missile.think = SUB_Remove;
 
-	setmodel (missile, "progs/missile.mdl");
+	//setmodel (missile, "progs/missile.mdl");
+	//setmodel (missile, "progs/tarbaby.mdl");
 	setsize (missile, '0 0 0', '0 0 0');
-	setorigin (missile, self.origin + v_forward*8 + '0 0 16');
+	setorigin (missile, self.origin + v_forward*8 + '0 0 22');
 };
 
 /*
@@ -477,17 +499,17 @@ LightningDamage
 */
 void(vector p1, vector p2, entity from, float damage) LightningDamage =
 {
-	local entity		e1, e2;
-	local vector		f;
+	//local entity		e1, e2;
+	//local vector		f;
 
-	f = p2 - p1;
-	normalize (f);
-	f_x = 0 - f_y;
-	f_y = f_x;
-	f_z = 0;
-	f = f*16;
+	//f = p2 - p1;
+	//normalize (f);
+	//f_x = 0 - f_y;
+	//f_y = f_x;
+	//f_z = 0;
+	//f = f*16;
 
-	e1 = e2 = world;
+	//e1 = e2 = world;
 
 	traceline (p1, p2, FALSE, self);
 	if (trace_ent.takedamage)
@@ -500,6 +522,7 @@ void(vector p1, vector p2, entity from, float damage) LightningDamage =
 				trace_ent.velocity_z = trace_ent.velocity_z + 400;
 		}
 	}
+	/*
 	e1 = trace_ent;
 
 	traceline (p1 + f, p2 + f, FALSE, self);
@@ -516,6 +539,7 @@ void(vector p1, vector p2, entity from, float damage) LightningDamage =
 		particle (trace_endpos, '0 0 100', 225, damage*4);
 		T_Damage (trace_ent, from, from, damage);
 	}
+	*/
 };
 
 
@@ -605,11 +629,12 @@ W_FireGrenade
 */
 void() W_FireGrenade =
 {
-	local	entity missile, mpuff;
+	local	entity missile;
 
 	self.currentammo = self.ammo_rockets = self.ammo_rockets - 1;
 
-	sound (self, CHAN_WEAPON, "weapons/grenade.wav", 1, ATTN_NORM);
+	//sound (self, CHAN_WEAPON, "weapons/grenade.wav", 1, ATTN_NORM);
+	sound (self, CHAN_WEAPON, "bloodshot/spawn.wav", 1, ATTN_NORM);
 
 	self.punchangle_x = -2;
 
@@ -632,17 +657,35 @@ void() W_FireGrenade =
 		missile.velocity_z = 200;
 	}
 
-	missile.avelocity = '300 300 300';
+	//missile.avelocity = '300 300 300';
 
-	missile.angles = vectoangles(missile.velocity);
+	//missile.angles = vectoangles(.velocity);
 
-	missile.touch = GrenadeTouch;
+	if (!self.enemy)
+	{
+		local entity tgt;
+
+		tgt = findradius(self.origin, 1500);
+
+		while(tgt)
+		{
+			if (tgt.health && (tgt.flags & FL_MONSTER))
+			{
+				self.enemy = tgt;
+			}
+			tgt = tgt.chain;
+		}
+	}
+
+	//missile.touch = GrenadeTouch;
+	missile.touch = spawn_spawner;
 
 // set missile duration
 	missile.nextthink = time + 2.5;
 	missile.think = GrenadeExplode;
 
-	setmodel (missile, "progs/grenade.mdl");
+	//setmodel (missile, "progs/grenade.mdl");
+	setmodel (missile, "progs/tarbaby.mdl");
 	setsize (missile, '0 0 0', '0 0 0');
 	setorigin (missile, self.origin);
 };
@@ -684,7 +727,6 @@ void(vector org, vector dir) launch_spike =
 void() W_FireSuperSpikes =
 {
 	local vector	dir;
-	local entity	old;
 
 	sound (self, CHAN_WEAPON, "weapons/spike2.wav", 1, ATTN_NORM);
 	self.attack_finished = time + 0.2;
@@ -700,7 +742,6 @@ void() W_FireSuperSpikes =
 void(float ox) W_FireSpikes =
 {
 	local vector	dir;
-	local entity	old;
 
 	makevectors (self.v_angle);
 
@@ -731,7 +772,6 @@ void(float ox) W_FireSpikes =
 .float hit_z;
 void() spike_touch =
 {
-local float rand;
 	if (other == self.owner)
 		return;
 
@@ -771,7 +811,6 @@ local float rand;
 
 void() superspike_touch =
 {
-local float rand;
 	if (other == self.owner)
 		return;
 
@@ -821,7 +860,7 @@ void() W_SetCurrentAmmo =
 	if (self.weapon == IT_AXE)
 	{
 		self.currentammo = 0;
-		self.weaponmodel = "progs/v_axe.mdl";
+		self.weaponmodel = "progs/bloodshot/v_hand.mdl";
 		self.weaponframe = 0;
 	}
 	else if (self.weapon == IT_SHOTGUN)
@@ -1084,7 +1123,7 @@ CheatCommand
 */
 void() CheatCommand =
 {
-	if (deathmatch || coop)
+	if (deathmatch)
 		return;
 
 	self.ammo_rockets = 100;
@@ -1265,12 +1304,14 @@ Just for development
 */
 void() ServerflagsCommand =
 {
+	if (deathmatch)
+		return;
 	serverflags = serverflags * 2 + 1;
 };
 
 void() QuadCheat =
 {
-	if (deathmatch || coop)
+	if (deathmatch)
 		return;
 	self.super_time = 1;
 	self.super_damage_finished = time + 30;
@@ -1321,7 +1362,8 @@ void() W_WeaponFrame =
 	if (time < self.attack_finished)
 		return;
 
-	ImpulseCommands ();
+	if (self.impulse)
+		ImpulseCommands ();
 
 // check for attack
 	if (self.button0)

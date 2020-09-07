@@ -2,12 +2,19 @@
 
 defs.qc
 dpextensions.qc
+//mod
+custom_defs.qc
+spawnmaster.qc
+sheepilator.qc
+
 subs.qc
 fight.qc
 ai.qc
 exp.qc
 combat.qc
 items.qc
+
+
 weapons.qc
 world.qc
 client.qc
@@ -19,9 +26,13 @@ triggers.qc
 plats.qc
 misc.qc
 
+
+
 ogre.qc
 demon.qc
 shambler.qc
+shambler_baby.qc
+
 knight.qc
 soldier.qc
 wizard.qc
@@ -30,6 +41,7 @@ zombie.qc
 boss.qc
 
 tarbaby.qc		// registered
+tarbaby_baby.qc
 hknight.qc		// registered
 fish.qc			// registered
 shalrath.qc		// registered
